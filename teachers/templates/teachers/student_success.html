@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Dashboard</title>
+</head>
+<body>
+    <h2>Welcome, {{ student.name }}!</h2>
+    <p><strong>Roll No:</strong> {{ student.roll_no }}</p>
+    <p><strong>Email:</strong> {{ student.email }}</p>
+    <p><strong>Class:</strong> {{ student.class_name }}</p>
+    <p><strong>Division:</strong> {{ student.division }}</p>
+    <a href="{% url 'login_student' %}">Logout</a>
+</body>
+</html>
