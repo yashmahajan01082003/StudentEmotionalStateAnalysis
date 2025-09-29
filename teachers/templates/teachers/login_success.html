@@ -322,6 +322,18 @@
         <p><strong>Class:</strong> {{ teacher.class_name }}</p>
         <p><strong>Subject:</strong> {{ teacher.subject }}</p>
         <p><strong>Email:</strong> {{ teacher.email }}</p>
+        <h2>Welcome {{ teacher.name }}</h2>
+
+    <!-- Button that redirects to the scheduling page -->
+    <a href="{% url 'schedule_lecture' teacher.id %}">
+        <button type="button">Schedule a Lecture</button>
+    </a>
+
+    <!-- Button to view all scheduled lectures -->
+    <a href="{% url 'teacher_lectures' teacher.id %}">
+        <button type="button">View My Lectures</button>
+    </a>
+
         <a href="{% url 'login_teacher' %}">Logout</a>
     </div>
 </body>

@@ -1,0 +1,6 @@
+<h2>Lecture Scheduled Successfully</h2>
+<p>Title: {{ lecture.title }}</p>
+<p>Class: {{ lecture.class_name }} - {{ lecture.division }}</p>
+<p>Date: {{ lecture.date }}</p>
+<p>Time: {{ lecture.start_time|time:"h:i A" }} - {{ lecture.end_time|time:"h:i A" }}</p>
+<p>Duration: {{ lecture.duration }}</p>

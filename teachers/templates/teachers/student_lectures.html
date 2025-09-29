@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Scheduled Lectures</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h2 {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #aaa;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background: #f2f2f2;
+        }
+        .back-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .back-button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Lectures for {{ student.class_name }} - {{ student.division }}</h2>
+
+{% if lectures %}
+    <table>
+        <tr>
+            <th>Title</th>
+            <th>Teacher</th>
+            <th>Date</th>
+            <th>Start Time</th>
+            <th>End Time</th>
+            <th>Duration</th>
+        </tr>
+        {% for lecture in lectures %}
+        <tr>
+            <td>{{ lecture.title }}</td>
+            <td>{{ lecture.teacher.name }}</td>
+            <td>{{ lecture.date }}</td>
+            <td>{{ lecture.start_time|time:"h:i A" }}</td>
+            <td>{{ lecture.end_time|time:"h:i A" }}</td>
+            <td>{{ lecture.duration }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>No lectures scheduled yet.</p>
+{% endif %}
+
+<a href="{% url 'login_student' %}" class="back-button">Back to Dashboard</a>
+
+</body>
+</html>

@@ -420,6 +420,8 @@
         <p><strong>Email:</strong> {{ student.email }}</p>
         <p><strong>Class:</strong> {{ student.class_name }}</p>
         <p><strong>Division:</strong> {{ student.division }}</p>
+        <a href="{% url 'student_lectures' student.id %}">Check Scheduled Lectures</a>
+
         <a href="{% url 'login_student' %}">Logout</a>
     </div>
 </body>

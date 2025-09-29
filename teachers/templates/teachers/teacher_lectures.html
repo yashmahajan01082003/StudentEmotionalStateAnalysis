@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Lectures</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h2 {
+            color: #333;
+        }
+        table {
+            width: 80%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        table, th, td {
+            border: 1px solid #aaa;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background: #f2f2f2;
+        }
+        .no-lectures {
+            margin-top: 20px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Lectures Scheduled by {{ teacher.name }}</h2>
+
+    {% if lectures %}
+        <table>
+            <tr>
+                <th>Title</th>
+                <th>Class</th>
+                <th>Division</th>
+                <th>Date</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Duration</th>
+            </tr>
+            {% for lecture in lectures %}
+            <tr>
+                <td>{{ lecture.title }}</td>
+                <td>{{ lecture.class_name }}</td>
+                <td>{{ lecture.division }}</td>
+                <td>{{ lecture.date }}</td>
+                <td>{{ lecture.start_time|time:"h:i A" }}</td>
+                <td>{{ lecture.end_time|time:"h:i A" }}</td>
+                <td>
+                    {% if lecture.duration %}
+                        {% if lecture.duration.seconds >= 3600 %}
+                            {{ lecture.duration.seconds|divisibleby:3600 }} hr
+                        {% endif %}
+                        {{ lecture.duration.seconds|divisibleby:60 }} min
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p class="no-lectures">No lectures scheduled yet.</p>
+    {% endif %}
+
+    <br>
+    <a href="{% url 'schedule_lecture' teacher.id %}">
+        <button type="button">Schedule Another Lecture</button>
+    </a>
+
+</body>
+</html>

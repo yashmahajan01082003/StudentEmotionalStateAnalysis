@@ -58,3 +58,54 @@ def login_student(request):
     else:
         form = StudentLoginForm()
     return render(request, "teachers/student_login.html", {"form": form})
+
+
+from django.shortcuts import render, get_object_or_404
+from .models import Student, Lecture
+
+def student_lectures(request, student_id):
+    student = get_object_or_404(Student, id=student_id)
+    lectures = Lecture.objects.filter(
+        class_name=student.class_name,
+        division=student.division
+    ).order_by("date", "start_time")
+    return render(request, "teachers/student_lectures.html", {
+        "student": student,
+        "lectures": lectures
+    })
+
+
+from django.shortcuts import render, get_object_or_404
+from .forms import LectureForm
+from .models import Lecture, Teacher
+
+
+def schedule_lecture(request, teacher_id):
+    teacher = get_object_or_404(Teacher, id=teacher_id)
+    if request.method == "POST":
+        form = LectureForm(request.POST)
+        if form.is_valid():
+            lecture = form.save(commit=False)
+            lecture.teacher = teacher
+            lecture.save()  # duration auto-calculated
+            return render(request, "teachers/lecture_success.html", {"lecture": lecture})
+    else:
+        form = LectureForm()
+    return render(request, "teachers/schedule_lecture.html", {"form": form, "teacher": teacher})
+
+from django.shortcuts import render, get_object_or_404
+from .models import Teacher, Lecture
+
+
+def teacher_lectures(request, teacher_id):
+    # Get the teacher or return 404 if not found
+    teacher = get_object_or_404(Teacher, id=teacher_id)
+
+    # Fetch all lectures scheduled by this teacher
+    lectures = Lecture.objects.filter(teacher=teacher).order_by("date", "start_time")
+
+    # Render template
+    return render(request, "teachers/teacher_lectures.html", {
+        "teacher": teacher,
+        "lectures": lectures
+    })
