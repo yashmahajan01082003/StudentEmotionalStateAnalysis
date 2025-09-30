@@ -53,6 +53,7 @@
             <th>Start Time</th>
             <th>End Time</th>
             <th>Duration</th>
+            <th>Attend the Lecture</th>
         </tr>
         {% for lecture in lectures %}
         <tr>
@@ -62,6 +63,7 @@
             <td>{{ lecture.start_time|time:"h:i A" }}</td>
             <td>{{ lecture.end_time|time:"h:i A" }}</td>
             <td>{{ lecture.duration }}</td>
+            <td><a href="{% url 'run_emotion_function' student.id %}" class="back-button">Print My ID</a></td>
         </tr>
         {% endfor %}
     </table>

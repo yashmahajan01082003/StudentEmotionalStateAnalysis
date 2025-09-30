@@ -109,3 +109,10 @@ def teacher_lectures(request, teacher_id):
         "teacher": teacher,
         "lectures": lectures
     })
+
+from django.http import HttpResponse
+
+def run_emotion_function(request, student_id):
+    print("Student ID is:", student_id)   # This will show in your server console
+    return HttpResponse(f"Student ID: {student_id}")
+
