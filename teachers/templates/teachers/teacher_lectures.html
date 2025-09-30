@@ -44,7 +44,6 @@
                 <th>Date</th>
                 <th>Start Time</th>
                 <th>End Time</th>
-                <th>Duration</th>
             </tr>
             {% for lecture in lectures %}
             <tr>
@@ -54,17 +53,7 @@
                 <td>{{ lecture.date }}</td>
                 <td>{{ lecture.start_time|time:"h:i A" }}</td>
                 <td>{{ lecture.end_time|time:"h:i A" }}</td>
-                <td>
-                    {% if lecture.duration %}
-                        {% if lecture.duration.seconds >= 3600 %}
-                            {{ lecture.duration.seconds|divisibleby:3600 }} hr
-                        {% endif %}
-                        {{ lecture.duration.seconds|divisibleby:60 }} min
-                    {% else %}
-                        -
-                    {% endif %}
-                </td>
-            </tr>
+              </tr>
             {% endfor %}
         </table>
     {% else %}
