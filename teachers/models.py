@@ -50,3 +50,15 @@ class Lecture(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.class_name} ({self.division}) {self.date} [{self.start_time.strftime('%I:%M %p')} - {self.end_time.strftime('%I:%M %p')}]"
+
+from django.db import models
+
+class LectureAttendance(models.Model):
+    student = models.ForeignKey("Student", on_delete=models.CASCADE, related_name="attendances")
+    lecture = models.ForeignKey("Lecture", on_delete=models.CASCADE, related_name="attendances")
+    state = models.CharField(max_length=50)  # 'Present', 'Absent', or emotion label
+    duration_seconds = models.FloatField(default=0.0)
+    timestamp = models.DateTimeField(auto_now_add=True)  # When this entry was created/updated
+
+    def __str__(self):
+        return f"{self.student.name} - {self.lecture.title} - {self.state} ({self.duration_seconds:.2f}s)"

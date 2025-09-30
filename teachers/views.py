@@ -1,5 +1,6 @@
+import os
 from django.shortcuts import render
-from .forms import TeacherForm, TeacherLoginForm, StudentForm, StudentLoginForm
+from .forms import TeacherForm, TeacherLoginForm, StudentForm, StudentLoginForm, LectureForm
 from .models import Teacher, Student
 
 # Teacher registration
@@ -61,23 +62,33 @@ def login_student(request):
 
 
 from django.shortcuts import render, get_object_or_404
-from .models import Student, Lecture
+from django.utils import timezone
+from .models import Lecture, Student
 
 def student_lectures(request, student_id):
     student = get_object_or_404(Student, id=student_id)
+    
+    # All lectures for this student, ordered by date and start_time
     lectures = Lecture.objects.filter(
         class_name=student.class_name,
         division=student.division
     ).order_by("date", "start_time")
+    
+    # Determine current lecture(s)
+    now = timezone.localtime()
+    today = now.date()
+    current_time = now.time()
+    
+    current_lectures = lectures.filter(date=today).filter(
+        start_time__lte=current_time,
+        end_time__gte=current_time
+    )
+    
     return render(request, "teachers/student_lectures.html", {
         "student": student,
-        "lectures": lectures
+        "lectures": current_lectures,
+        "current_lectures": current_lectures,  # This contains lecture(s) happening now
     })
-
-
-from django.shortcuts import render, get_object_or_404
-from .forms import LectureForm
-from .models import Lecture, Teacher
 
 
 def schedule_lecture(request, teacher_id):
@@ -111,8 +122,179 @@ def teacher_lectures(request, teacher_id):
     })
 
 from django.http import HttpResponse
+from django.utils import timezone
+from datetime import datetime, time
+
+from django.utils import timezone
+from .models import Lecture, Student, LectureAttendance
+import time
+import cv2
+import numpy as np
+import mediapipe as mp
+from keras.models import load_model
+import time
+
+from django.utils import timezone
+from .models import Student, Lecture, LectureAttendance
+
+import cv2
+import numpy as np
+import mediapipe as mp
+from keras.models import load_model
+import time
+import os
+
+from django.utils import timezone
+from django.http import HttpResponse
+from .models import Student, Lecture, LectureAttendance
+from django.db.models import F
+
 
 def run_emotion_function(request, student_id):
-    print("Student ID is:", student_id)   # This will show in your server console
-    return HttpResponse(f"Student ID: {student_id}")
+    print("Student ID:", student_id)
 
+    # Fetch student
+    try:
+        student = Student.objects.get(id=student_id)
+    except Student.DoesNotExist:
+        return HttpResponse(f"No student found with ID: {student_id}")
+
+    # Find current lecture
+    now = timezone.localtime()
+    today = now.date()
+    current_time = now.time()
+
+    lectures_today = Lecture.objects.filter(
+        class_name=student.class_name,
+        division=student.division,
+        date=today
+    )
+
+    current_lecture = None
+    for lecture in lectures_today:
+        if lecture.start_time <= current_time <= lecture.end_time:
+            current_lecture = lecture
+            print(f"Tracking emotions for lecture: {lecture.title}")
+            break
+
+    if not current_lecture:
+        return HttpResponse("No ongoing lecture for this student right now.")
+
+    # Load model and labels from the same directory as views.py
+    app_dir = os.path.dirname(os.path.abspath(__file__))
+    model_path = os.path.join(app_dir, "model.h5")
+    labels_path = os.path.join(app_dir, "labels.npy")
+
+    model = load_model(model_path)
+    label = np.load(labels_path)
+
+    # Mediapipe setup
+    holistic = mp.solutions.holistic
+    hands = mp.solutions.hands
+    holis = holistic.Holistic()
+    drawing = mp.solutions.drawing_utils
+
+    cap = cv2.VideoCapture(0)
+
+    # Timing variables
+    emotion_times = {}  # {"Happy": 5.2, "Absent": 3.0}
+    current_state = None
+    start_time = None
+
+    while True:
+        lst = []
+        ret, frm = cap.read()
+        if not ret:
+            break
+        frm = cv2.flip(frm, 1)
+        res = holis.process(cv2.cvtColor(frm, cv2.COLOR_BGR2RGB))
+
+        if res.face_landmarks:
+            # Person present, extract landmarks
+            for i in res.face_landmarks.landmark:
+                lst.append(i.x - res.face_landmarks.landmark[1].x)
+                lst.append(i.y - res.face_landmarks.landmark[1].y)
+
+            if res.left_hand_landmarks:
+                for i in res.left_hand_landmarks.landmark:
+                    lst.append(i.x - res.left_hand_landmarks.landmark[8].x)
+                    lst.append(i.y - res.left_hand_landmarks.landmark[8].y)
+            else:
+                lst.extend([0.0] * 42)
+
+            if res.right_hand_landmarks:
+                for i in res.right_hand_landmarks.landmark:
+                    lst.append(i.x - res.right_hand_landmarks.landmark[8].x)
+                    lst.append(i.y - res.right_hand_landmarks.landmark[8].y)
+            else:
+                lst.extend([0.0] * 42)
+
+            lst = np.array(lst).reshape(1, -1)
+            pred = label[np.argmax(model.predict(lst))]
+            cv2.putText(frm, pred, (50, 50), cv2.FONT_ITALIC, 1, (255, 0, 0), 2)
+            state = pred
+        else:
+            # Person absent
+            cv2.putText(frm, "Absent", (50, 50), cv2.FONT_ITALIC, 1, (0, 0, 255), 2)
+            state = "Absent"
+
+        # Timing logic
+        current_time_epoch = time.time()
+        if current_state is None:
+            current_state = state
+            start_time = current_time_epoch
+        elif current_state != state:
+            duration = current_time_epoch - start_time
+
+            # Save or update in DB
+            attendance, created = LectureAttendance.objects.get_or_create(
+                student=student,
+                lecture=current_lecture,
+                state=current_state,
+                defaults={'duration_seconds': duration}
+            )
+            if not created:
+                attendance.duration_seconds = F('duration_seconds') + duration
+                attendance.save()
+
+            emotion_times[current_state] = emotion_times.get(current_state, 0) + duration
+            current_state = state
+            start_time = current_time_epoch
+
+        # Draw landmarks
+        if res.face_landmarks:
+            drawing.draw_landmarks(frm, res.face_landmarks, holistic.FACEMESH_CONTOURS)
+        if res.left_hand_landmarks:
+            drawing.draw_landmarks(frm, res.left_hand_landmarks, hands.HAND_CONNECTIONS)
+        if res.right_hand_landmarks:
+            drawing.draw_landmarks(frm, res.right_hand_landmarks, hands.HAND_CONNECTIONS)
+
+        cv2.imshow("Emotion Tracking", frm)
+
+        if cv2.waitKey(1) == ord('q'):
+            # Save last state
+            if current_state is not None and start_time is not None:
+                duration = time.time() - start_time
+
+                attendance, created = LectureAttendance.objects.get_or_create(
+                    student=student,
+                    lecture=current_lecture,
+                    state=current_state,
+                    defaults={'duration_seconds': duration}
+                )
+                if not created:
+                    attendance.duration_seconds = F('duration_seconds') + duration
+                    attendance.save()
+
+                emotion_times[current_state] = emotion_times.get(current_state, 0) + duration
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+    # Print summary
+    print("\n--- Emotion & Absence Durations ---")
+    for state, t in emotion_times.items():
+        print(f"{state}: {t:.2f} s")
+
+    return HttpResponse(f"Emotion tracking completed for student {student.name} ({student_id})")
