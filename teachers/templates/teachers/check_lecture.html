@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My Lectures</title>
+    <title>Lecture Attendance</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
         
@@ -123,7 +123,7 @@
         
         /* Page title */
         .page-title {
-            font-size: 2.5em;
+            font-size: 3em;
             font-weight: 900;
             text-align: center;
             margin-bottom: 40px;
@@ -160,8 +160,29 @@
             to { text-shadow: 0 0 20px rgba(0, 255, 255, 0.8); }
         }
         
-        /* Lectures container */
-        .lectures-container {
+        /* Error message */
+        .error {
+            background: rgba(255, 71, 87, 0.15);
+            border: 2px solid rgba(255, 71, 87, 0.5);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            color: #ff4757;
+            font-weight: 700;
+            text-align: center;
+            font-size: 1.2em;
+            animation: shake 0.5s ease-in-out;
+            box-shadow: 0 0 20px rgba(255, 71, 87, 0.3);
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        /* Info card */
+        .info-card {
             background: rgba(15, 27, 46, 0.85);
             border: 2px solid rgba(0, 255, 255, 0.3);
             border-radius: 15px;
@@ -171,33 +192,87 @@
                 0 0 30px rgba(0, 255, 255, 0.2),
                 inset 0 0 20px rgba(0, 255, 255, 0.05);
             backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
         }
         
-        .lectures-grid {
+        .info-card:hover {
+            border-color: #00ffff;
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        h2 {
+            font-size: 2em;
+            font-weight: 900;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #00ffff;
+            text-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+        
+        h3 {
+            font-size: 1.6em;
+            font-weight: 900;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #00ffff;
+            text-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+            border-bottom: 2px solid rgba(0, 255, 255, 0.3);
+            padding-bottom: 10px;
+        }
+        
+        .info-text {
+            font-size: 1.1em;
+            line-height: 2;
+            color: rgba(0, 255, 255, 0.9);
+        }
+        
+        .info-text strong {
+            color: #00ffff;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+        
+        /* Student cards container */
+        .students-container {
+            background: rgba(15, 27, 46, 0.85);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 
+                0 0 30px rgba(0, 255, 255, 0.2),
+                inset 0 0 20px rgba(0, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+        }
+        
+        .students-grid {
             display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 20px;
             margin-top: 20px;
         }
         
-        /* Individual lecture card */
-        .lecture-card {
+        /* Individual student card */
+        .student-card {
             background: rgba(0, 0, 0, 0.4);
             border: 2px solid rgba(0, 255, 255, 0.2);
             border-radius: 12px;
-            padding: 25px;
+            padding: 20px;
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
         }
         
-        .lecture-card::before {
+        .student-card::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 4px;
-            background: linear-gradient(90deg, #00ffff, #0080ff, #9b59b6, #00ffff);
+            background: linear-gradient(90deg, #00ffff, #0080ff, #00ffff);
             background-size: 200% 100%;
             animation: shimmer 3s linear infinite;
         }
@@ -207,81 +282,77 @@
             100% { background-position: 200% 0; }
         }
         
-        .lecture-card:hover {
+        .student-card:hover {
             border-color: #00ffff;
             box-shadow: 0 0 25px rgba(0, 255, 255, 0.4);
-            transform: translateY(-3px);
+            transform: translateY(-5px);
         }
         
-        .lecture-header {
+        .student-card.present::before {
+            background: linear-gradient(90deg, #4ecdc4, #44a08d, #4ecdc4);
+            background-size: 200% 100%;
+        }
+        
+        .student-card.absent::before {
+            background: linear-gradient(90deg, #ff4757, #ff6b35, #ff4757);
+            background-size: 200% 100%;
+        }
+        
+        .student-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
             border-bottom: 1px solid rgba(0, 255, 255, 0.2);
-            flex-wrap: wrap;
-            gap: 15px;
         }
         
-        .lecture-title {
-            font-size: 1.4em;
+        .roll-no {
+            font-size: 1.3em;
             font-weight: 900;
             color: #00ffff;
             text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-            flex: 1;
-            min-width: 200px;
         }
         
-        .lecture-class {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        
-        .class-badge {
-            padding: 8px 16px;
+        .status-badge {
+            padding: 6px 14px;
             border-radius: 20px;
             font-size: 0.85em;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
+        }
+        
+        .status-badge.present {
             background: rgba(78, 205, 196, 0.2);
             color: #4ecdc4;
             border: 1px solid rgba(78, 205, 196, 0.5);
+            text-shadow: 0 0 8px rgba(78, 205, 196, 0.5);
         }
         
-        .lecture-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
+        .status-badge.absent {
+            background: rgba(255, 71, 87, 0.2);
+            color: #ff4757;
+            border: 1px solid rgba(255, 71, 87, 0.5);
+            text-shadow: 0 0 8px rgba(255, 71, 87, 0.5);
         }
         
-        .detail-item {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        
-        .detail-label {
-            font-size: 0.75em;
-            color: rgba(0, 255, 255, 0.6);
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        .student-name {
+            font-size: 1.1em;
             font-weight: 700;
-        }
-        
-        .detail-value {
-            font-size: 1em;
             color: rgba(0, 255, 255, 0.95);
-            font-weight: 700;
+            margin-bottom: 8px;
         }
         
-        .lecture-actions {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
+        .student-email {
+            font-size: 0.9em;
+            color: rgba(0, 255, 255, 0.7);
+            margin-bottom: 15px;
+            word-break: break-word;
+        }
+        
+        .student-actions {
+            margin-top: 15px;
         }
         
         /* Button styling */
@@ -289,10 +360,10 @@
             background: linear-gradient(45deg, #00ffff, #0080ff);
             border: none;
             border-radius: 8px;
-            padding: 12px 24px;
+            padding: 10px 20px;
             color: #000;
             font-family: 'Orbitron', monospace;
-            font-size: 0.85em;
+            font-size: 0.9em;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -301,8 +372,7 @@
             box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
             position: relative;
             overflow: hidden;
-            flex: 1;
-            min-width: 150px;
+            width: 100%;
         }
         
         button:hover {
@@ -329,49 +399,23 @@
             left: 100%;
         }
         
-        /* Report button variant */
-        .btn-report {
-            background: linear-gradient(45deg, #9b59b6, #8e44ad);
-        }
-        
-        .btn-report:hover {
-            box-shadow: 0 6px 20px rgba(155, 89, 182, 0.5);
-        }
-        
-        /* Schedule button */
-        .schedule-button-container {
-            text-align: center;
-            margin-top: 30px;
-        }
-        
-        .btn-schedule {
-            background: linear-gradient(45deg, #ff6b35, #f7931e);
-            min-width: 280px;
-            padding: 15px 40px;
-            font-size: 1em;
-        }
-        
-        .btn-schedule:hover {
-            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.5);
-        }
-        
         a {
             text-decoration: none;
         }
         
-        /* No lectures message */
-        .no-lectures {
+        /* No data message */
+        .no-data {
             text-align: center;
-            padding: 60px 20px;
+            padding: 40px;
             color: rgba(0, 255, 255, 0.6);
-            font-size: 1.3em;
+            font-size: 1.2em;
             font-style: italic;
         }
         
         /* Responsive design */
         @media (max-width: 768px) {
             .page-title {
-                font-size: 1.8em;
+                font-size: 2em;
             }
             
             .page-title::before,
@@ -379,28 +423,21 @@
                 display: none;
             }
             
-            .lectures-container {
+            .info-card,
+            .students-container {
                 padding: 20px;
             }
             
-            .lecture-card {
-                padding: 20px;
+            h2 {
+                font-size: 1.5em;
             }
             
-            .lecture-title {
-                font-size: 1.2em;
+            h3 {
+                font-size: 1.3em;
             }
             
-            .lecture-details {
+            .students-grid {
                 grid-template-columns: 1fr;
-            }
-            
-            .lecture-actions {
-                flex-direction: column;
-            }
-            
-            button {
-                width: 100%;
             }
         }
     </style>
@@ -423,57 +460,53 @@
     <div class="particle" style="left: 90%; animation-delay: 3.5s;"></div>
     
     <div class="container">
-        <h1 class="page-title">Lectures by {{ teacher.name }}</h1>
+        <h1 class="page-title">Attendance Tracker</h1>
         
-        <div class="lectures-container">
-            {% if lectures %}
-                <div class="lectures-grid">
-                    {% for lecture in lectures %}
-                    <div class="lecture-card">
-                        <div class="lecture-header">
-                            <div class="lecture-title">{{ lecture.title }}</div>
-                            <div class="lecture-class">
-                                <div class="class-badge">{{ lecture.class_name }}</div>
-                                <div class="class-badge">{{ lecture.division }}</div>
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% else %}
+            <!-- Lecture Info Card -->
+            <div class="info-card">
+                <h2>{{ lecture.title }}</h2>
+                <p class="info-text">
+                    <strong>Class:</strong> {{ lecture.class_name }} - {{ lecture.division }}<br>
+                    <strong>Date:</strong> {{ lecture.date }}<br>
+                    <strong>Time:</strong> {{ lecture.start_time }} - {{ lecture.end_time }}
+                </p>
+            </div>
+            
+            <!-- Attendance Cards -->
+            <div class="students-container">
+                <h3>Attendance</h3>
+                {% if attendance_data %}
+                    <div class="students-grid">
+                        {% for record in attendance_data %}
+                        <div class="student-card {% if record.status == 'Absent' %}absent{% else %}present{% endif %}">
+                            <div class="student-header">
+                                <div class="roll-no">{{ record.roll_no }}</div>
+                                <div class="status-badge {% if record.status == 'Absent' %}absent{% else %}present{% endif %}">
+                                    {% if record.status == 'Absent' %}Absent{% else %}Present{% endif %}
+                                </div>
                             </div>
+                            <div class="student-name">{{ record.student_name }}</div>
+                            <div class="student-email">{{ record.email }}</div>
+                            {% if record.status != 'Absent' %}
+                                <div class="student-actions">
+                                    {% spaceless %}
+                                    <a href="{% url 'show_student' record.roll_no %}?student_name={{ record.student_name|urlencode }}&title={{ lecture.title|urlencode }}&class_name={{ lecture.class_name|urlencode }}&division={{ lecture.division|urlencode }}&date={{ lecture.date|date:'Y-m-d' }}&start_time={{ lecture.start_time|time:'H:i:s' }}&end_time={{ lecture.end_time|time:'H:i:s' }}">
+                                        <button type="button">Know More!</button>
+                                    </a>
+                                    {% endspaceless %}
+                                </div>
+                            {% endif %}
                         </div>
-                        
-                        <div class="lecture-details">
-                            <div class="detail-item">
-                                <div class="detail-label">Date</div>
-                                <div class="detail-value">{{ lecture.date }}</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">Start Time</div>
-                                <div class="detail-value">{{ lecture.start_time|time:"h:i A" }}</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">End Time</div>
-                                <div class="detail-value">{{ lecture.end_time|time:"h:i A" }}</div>
-                            </div>
-                        </div>
-                        
-                        <div class="lecture-actions">
-                            <a href="{% url 'check_lecture' teacher.id %}?title={{ lecture.title }}&class_name={{ lecture.class_name }}&division={{ lecture.division }}&date={{ lecture.date|date:'Y-m-d' }}&start_time={{ lecture.start_time|time:'H:i:s' }}&end_time={{ lecture.end_time|time:'H:i:s' }}">
-                                <button type="button">Check Lecture</button>
-                            </a>
-                            <a href="{% url 'check_lecture' teacher.id %}?title={{ lecture.title }}&class_name={{ lecture.class_name }}&division={{ lecture.division }}&date={{ lecture.date|date:'Y-m-d' }}&start_time={{ lecture.start_time|time:'H:i:s' }}&end_time={{ lecture.end_time|time:'H:i:s' }}">
-                                <button type="button" class="btn-report">Generate Report</button>
-                            </a>
-                        </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <p class="no-lectures">No lectures scheduled yet.</p>
-            {% endif %}
-        </div>
-        
-        <div class="schedule-button-container">
-            <a href="{% url 'schedule_lecture' teacher.id %}">
-                <button type="button" class="btn-schedule">Schedule Another Lecture</button>
-            </a>
-        </div>
+                {% else %}
+                    <p class="no-data">No students found for this class/division.</p>
+                {% endif %}
+            </div>
+        {% endif %}
     </div>
 </body>
 </html>

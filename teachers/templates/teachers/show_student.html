@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Lecture Details</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Orbitron', monospace;
+            background: linear-gradient(135deg, #0a1428 0%, #1a2f4f 50%, #0f1b2e 100%);
+            min-height: 100vh;
+            color: #00ffff;
+            padding: 40px 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* Animated background elements */
+        .floating-element {
+            position: fixed;
+            opacity: 0.3;
+            animation: float 8s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .floating-element.gear1 {
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle, #ff6b35, #f7931e);
+            border-radius: 50%;
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+        
+        .floating-element.gear2 {
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle, #4ecdc4, #44a08d);
+            border-radius: 50%;
+            top: 70%;
+            right: 15%;
+            animation-delay: 2s;
+        }
+        
+        .floating-element.gear3 {
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, #9b59b6, #8e44ad);
+            border-radius: 50%;
+            bottom: 30%;
+            left: 5%;
+            animation-delay: 4s;
+        }
+        
+        .floating-element.robot {
+            width: 50px;
+            height: 30px;
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            top: 15%;
+            right: 20%;
+            animation-delay: 1s;
+            border-radius: 5px;
+        }
+        
+        .floating-element.robot::before {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #fff;
+            border-radius: 50%;
+            top: 8px;
+            left: 10px;
+            box-shadow: 15px 0 #fff;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            25% { transform: translateY(-20px) rotate(90deg); }
+            50% { transform: translateY(-10px) rotate(180deg); }
+            75% { transform: translateY(-15px) rotate(270deg); }
+        }
+        
+        /* Particles effect */
+        .particle {
+            position: fixed;
+            width: 2px;
+            height: 2px;
+            background: #00ffff;
+            border-radius: 50%;
+            animation: particle 4s linear infinite;
+            z-index: 0;
+        }
+        
+        @keyframes particle {
+            0% {
+                transform: translateY(100vh) translateX(0);
+                opacity: 0;
+            }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% {
+                transform: translateY(-10px) translateX(100px);
+                opacity: 0;
+            }
+        }
+        
+        /* Main container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Page title */
+        .page-title {
+            font-size: 3em;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: #00ffff;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            position: relative;
+        }
+        
+        .page-title::before {
+            content: '👁️';
+            position: absolute;
+            left: -60px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.6em;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        .page-title::after {
+            content: '👁️';
+            position: absolute;
+            right: -60px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.6em;
+            animation: glow 2s ease-in-out infinite alternate;
+            animation-delay: 1s;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
+            to { text-shadow: 0 0 20px rgba(0, 255, 255, 0.8); }
+        }
+        
+        /* Section cards */
+        .section-card {
+            background: rgba(15, 27, 46, 0.85);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 
+                0 0 30px rgba(0, 255, 255, 0.2),
+                inset 0 0 20px rgba(0, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .section-card:hover {
+            border-color: #00ffff;
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        h2 {
+            font-size: 1.8em;
+            font-weight: 900;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #00ffff;
+            text-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+            border-bottom: 2px solid rgba(0, 255, 255, 0.3);
+            padding-bottom: 10px;
+        }
+        
+        /* Info text styling */
+        .info-text {
+            font-size: 1.1em;
+            line-height: 2;
+            color: rgba(0, 255, 255, 0.9);
+        }
+        
+        .info-text strong {
+            color: #00ffff;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+        
+        /* Chart container */
+        .chart-container {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+        }
+        
+        /* No data message */
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: rgba(0, 255, 255, 0.6);
+            font-size: 1.2em;
+            font-style: italic;
+        }
+        
+        /* Summary styling */
+        .ai-summary {
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 4px solid #00ffff;
+            padding: 20px;
+            border-radius: 5px;
+            line-height: 1.8;
+            color: rgba(0, 255, 255, 0.9);
+            font-size: 1.05em;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 2em;
+            }
+            
+            .page-title::before,
+            .page-title::after {
+                display: none;
+            }
+            
+            .section-card {
+                padding: 20px;
+            }
+            
+            h2 {
+                font-size: 1.4em;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+</head>
+<body>
+    <!-- Floating background elements -->
+    <div class="floating-element gear1"></div>
+    <div class="floating-element gear2"></div>
+    <div class="floating-element gear3"></div>
+    <div class="floating-element robot"></div>
+    
+    <!-- Animated particles -->
+    <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+    <div class="particle" style="left: 20%; animation-delay: 1s;"></div>
+    <div class="particle" style="left: 30%; animation-delay: 2s;"></div>
+    <div class="particle" style="left: 40%; animation-delay: 3s;"></div>
+    <div class="particle" style="left: 60%; animation-delay: 1.5s;"></div>
+    <div class="particle" style="left: 70%; animation-delay: 2.5s;"></div>
+    <div class="particle" style="left: 80%; animation-delay: 0.5s;"></div>
+    <div class="particle" style="left: 90%; animation-delay: 3.5s;"></div>
+    
+    <div class="container">
+        <h1 class="page-title">Lecture Analysis</h1>
+        
+        <!-- Student Details Section -->
+        <div class="section-card">
+            <h2>Student Details</h2>
+            <p class="info-text">
+                <strong>Name:</strong> {{ student.name }} <br>
+                <strong>Roll No:</strong> {{ student.roll_no }} <br>
+                <strong>Email:</strong> {{ student.email }} <br>
+                <strong>Class:</strong> {{ student.class_name }} - {{ student.division }}
+            </p>
+        </div>
+        
+        <!-- Lecture Details Section -->
+        <div class="section-card">
+            <h2>Lecture Details</h2>
+            <p class="info-text">
+                <strong>Title:</strong> {{ lecture.title }} <br>
+                <strong>Date:</strong> {{ lecture.date }} <br>
+                <strong>Time:</strong> {{ lecture.start_time }} - {{ lecture.end_time }} <br>
+                <strong>Teacher:</strong> {{ lecture.teacher.name }}
+            </p>
+        </div>
+        
+        <!-- Attendance Entries Section with Graph -->
+        <div class="section-card">
+            <h2>Emotional State Analysis</h2>
+            {% if attendance_entry %}
+                <div class="chart-container">
+                    <canvas id="emotionChart"></canvas>
+                </div>
+                
+                <script>
+                    // Prepare data for the chart
+                    const attendanceData = [
+                        {% for entry in attendance_entry %}
+                        {
+                            state: "{{ entry.state }}",
+                            duration: {{ entry.duration_seconds }}
+                        }{% if not forloop.last %},{% endif %}
+                        {% endfor %}
+                    ];
+                    
+                    // Extract labels and data
+                    const labels = attendanceData.map(entry => entry.state);
+                    const durations = attendanceData.map(entry => entry.duration);
+                    
+                    // Color mapping for different emotions
+                    const colorMap = {
+                        'Happy': '#00ffff',
+                        'Sad': '#ff6b35',
+                        'Angry': '#ff4757',
+                        'Neutral': '#4ecdc4',
+                        'Surprised': '#9b59b6',
+                        'Fearful': '#f7931e',
+                        'Disgusted': '#e74c3c'
+                    };
+                    
+                    const backgroundColors = labels.map(label => {
+                        return colorMap[label] || '#00ffff';
+                    });
+                    
+                    // Create the chart
+                    const ctx = document.getElementById('emotionChart').getContext('2d');
+                    const emotionChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Duration (seconds)',
+                                data: durations,
+                                backgroundColor: backgroundColors,
+                                borderColor: backgroundColors.map(color => color),
+                                borderWidth: 2,
+                                borderRadius: 8,
+                                barThickness: 60
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    labels: {
+                                        color: '#00ffff',
+                                        font: {
+                                            family: 'Orbitron',
+                                            size: 14,
+                                            weight: 'bold'
+                                        }
+                                    }
+                                },
+                                tooltip: {
+                                    backgroundColor: 'rgba(15, 27, 46, 0.95)',
+                                    titleColor: '#00ffff',
+                                    bodyColor: '#00ffff',
+                                    borderColor: '#00ffff',
+                                    borderWidth: 1,
+                                    titleFont: {
+                                        family: 'Orbitron',
+                                        size: 14,
+                                        weight: 'bold'
+                                    },
+                                    bodyFont: {
+                                        family: 'Orbitron',
+                                        size: 12
+                                    },
+                                    padding: 12,
+                                    displayColors: true,
+                                    callbacks: {
+                                        label: function(context) {
+                                            return ' Duration: ' + context.parsed.y + ' seconds';
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: {
+                                        color: 'rgba(0, 255, 255, 0.1)',
+                                        lineWidth: 1
+                                    },
+                                    ticks: {
+                                        color: '#00ffff',
+                                        font: {
+                                            family: 'Orbitron',
+                                            size: 12
+                                        }
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: 'Duration (seconds)',
+                                        color: '#00ffff',
+                                        font: {
+                                            family: 'Orbitron',
+                                            size: 14,
+                                            weight: 'bold'
+                                        }
+                                    }
+                                },
+                                x: {
+                                    grid: {
+                                        color: 'rgba(0, 255, 255, 0.1)',
+                                        lineWidth: 1
+                                    },
+                                    ticks: {
+                                        color: '#00ffff',
+                                        font: {
+                                            family: 'Orbitron',
+                                            size: 12,
+                                            weight: 'bold'
+                                        }
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: 'Emotional State',
+                                        color: '#00ffff',
+                                        font: {
+                                            family: 'Orbitron',
+                                            size: 14,
+                                            weight: 'bold'
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                </script>
+            {% else %}
+                <p class="no-data">No attendance records found for this lecture.</p>
+            {% endif %}
+        </div>
+        
+        <!-- AI Generated Summary Section -->
+        <div class="section-card">
+            <h2>AI Generated Summary</h2>
+            {% if response_text %}
+                <div class="ai-summary">{{ response_text }}</div>
+            {% else %}
+                <p class="no-data">No summary available.</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

@@ -1,4 +1,5 @@
 import os
+from urllib import response
 from django.shortcuts import render
 from .forms import TeacherForm, TeacherLoginForm, StudentForm, StudentLoginForm, LectureForm
 from .models import Teacher, Student
@@ -298,3 +299,147 @@ def run_emotion_function(request, student_id):
         print(f"{state}: {t:.2f} s")
 
     return HttpResponse(f"Emotion tracking completed for student {student.name} ({student_id})")
+
+from datetime import datetime
+from django.shortcuts import render, get_object_or_404
+from .models import Lecture, Student, LectureAttendance
+
+def check_lecture(request, teacher_id):
+    # 1️⃣ Get lecture details from URL query params
+    title = request.GET.get('title')
+    class_name = request.GET.get('class_name')
+    division = request.GET.get('division')
+    date_str = request.GET.get('date')
+    start_time_str = request.GET.get('start_time')
+    end_time_str = request.GET.get('end_time')
+
+    # 2️⃣ Parse date and time strings
+    try:
+        date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        start_time = datetime.strptime(start_time_str, '%H:%M:%S').time()
+        end_time = datetime.strptime(end_time_str, '%H:%M:%S').time()
+    except (ValueError, TypeError):
+        return render(request, "teachers/check_lecture.html", {
+            "error": "Invalid date or time format. Use YYYY-MM-DD for date and HH:MM:SS for time."
+        })
+
+    print(f"Received parameters: title={title}, class_name={class_name}, division={division}, date={date}, start_time={start_time}, end_time={end_time}")
+
+    # 3️⃣ Find the specific lecture for this teacher
+    lecture = get_object_or_404(
+        Lecture,
+        teacher_id=teacher_id,
+        title=title,
+        class_name=class_name,
+        division=division,
+        date=date,
+        start_time=start_time,
+        end_time=end_time
+    )
+
+    # 4️⃣ Fetch all students in this class/division
+    students = Student.objects.filter(class_name=class_name, division=division)
+
+    # 5️⃣ Build attendance info
+    attendance_data = []
+    for student in students:
+        attendance_entry = LectureAttendance.objects.filter(student=student, lecture=lecture).first()
+        if attendance_entry:
+            status = attendance_entry.state
+            duration = attendance_entry.duration_seconds
+        else:
+            status = "Absent"
+            duration = 0.0
+        
+        attendance_data.append({
+            "student_name": student.name,
+            "roll_no": student.roll_no,
+            "email": student.email,
+            "status": status,
+            "duration": duration
+        })
+
+    # 6️⃣ Pass data to template
+    context = {
+        "lecture": lecture,
+        "attendance_data": attendance_data,
+    }
+    return render(request, "teachers/check_lecture.html", context)
+
+from django.shortcuts import render, get_object_or_404
+from datetime import datetime
+from .models import Student, Lecture, LectureAttendance
+from google import genai
+
+
+def show_student(request, student_id):
+    # 1️⃣ Get lecture details from query params
+    title = request.GET.get("title")
+    class_name = request.GET.get("class_name")
+    division = request.GET.get("division")
+    date_str = request.GET.get("date")
+    start_time_str = request.GET.get("start_time")
+    end_time_str = request.GET.get("end_time")
+    student_name = request.GET.get("student_name")
+
+    print(f"Received parameters: student name = {student_name} ,title={title}, class_name={class_name}, division={division}, date={date_str}, start_time={start_time_str}, end_time={end_time_str}")
+
+    # 2️⃣ Get the student object
+    student = get_object_or_404(Student, name=student_name)
+    print("Student:", student)
+
+    # 3️⃣ Convert query params to proper date/time objects
+    try:
+        date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        start_time = datetime.strptime(start_time_str, "%H:%M:%S").time()
+        end_time = datetime.strptime(end_time_str, "%H:%M:%S").time()
+    except Exception as e:
+        print("Date/Time conversion error:", e)
+        date = start_time = end_time = None
+
+    # 4️⃣ Get the correct lecture (matching all params)
+    lecture = get_object_or_404(
+        Lecture,
+        title=title,
+        class_name=class_name,
+        division=division,
+        date=date,
+        start_time=start_time,
+        end_time=end_time
+    )
+    print("Lecture:", lecture)
+
+    # 5️⃣ Fetch the attendance records for that lecture & student
+    attendance_entry = LectureAttendance.objects.filter(
+        student_id=student.id,
+        lecture_id=lecture.id
+    )
+    print("Attendance Entry:", attendance_entry)
+
+
+    GEMINI_API_KEY = "AIzaSyBvyYR9VuZiLlMW-GD188i-Cz2WPwElB58"
+    # Initialize the client
+    client = genai.Client(api_key=GEMINI_API_KEY)
+
+    # can you create a query which would have the data of the student attendance in a lecture which would have name and the emotion based details in duration and generate the summary about student in this lecture
+    # loop attendance entry and create a query donot include everything, just use nam eof stident and attenadcane entry
+    query = f"Create a summary for student {student.name} in the lecture titled '{lecture.title}' held on {lecture.date} from {lecture.start_time} to {lecture.end_time}. The student had the following attendance and emotion details: "
+    for entry in attendance_entry:
+        query += f"State: {entry.state}, Duration: {entry.duration_seconds} seconds. "
+    
+    # # Generate content
+    # response = client.models.generate_content(
+    #     model="gemini-2.5-flash",
+    #     contents=query,
+    # )
+    # response_text = response.text
+    # print("Generated Summary:", response_text)
+    response_text = "This is a placeholder summary. Replace this with actual API response."
+    # 6️⃣ Render the data
+    context = {
+        "student": student,
+        "lecture": lecture,
+        "attendance_entry": attendance_entry,
+        "response_text": response_text,
+    }
+    return render(request, "teachers/show_student.html", context)
