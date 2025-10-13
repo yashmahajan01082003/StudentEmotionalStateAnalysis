@@ -285,6 +285,18 @@
                 opacity: 0;
             }
         }
+        h5 {
+            font-size: 1em;
+            font-weight: 500;
+            margin-bottom: 10px;
+            margin-top: 10px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: #00ffff;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            position: relative;
+        }
+        
         
         /* Responsive design */
         @media (max-width: 480px) {
@@ -328,6 +340,9 @@
             {{ form.as_p }}
             <button type="submit">Login</button>
         </form>
+        <a  href="{% url 'register_student' %}"><h5 class="button label">Register as Student</h5></a>
+        <a  href="{% url 'login_teacher' %}"><h5 class="button label">Login as Teacher</h5></a>
+
         {% if form.errors %}
             <p style="color: red;">{{ form.non_field_errors }}</p>
         {% endif %}

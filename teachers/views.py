@@ -428,13 +428,13 @@ def show_student(request, student_id):
         query += f"State: {entry.state}, Duration: {entry.duration_seconds} seconds. "
     
     # # Generate content
-    # response = client.models.generate_content(
-    #     model="gemini-2.5-flash",
-    #     contents=query,
-    # )
-    # response_text = response.text
-    # print("Generated Summary:", response_text)
-    response_text = "This is a placeholder summary. Replace this with actual API response."
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=query,
+    )
+    response_text = response.text
+    print("Generated Summary:", response_text)
+    # response_text = "This is a placeholder summary. Replace this with actual API response."
     # 6️⃣ Render the data
     context = {
         "student": student,
@@ -443,3 +443,67 @@ def show_student(request, student_id):
         "response_text": response_text,
     }
     return render(request, "teachers/show_student.html", context)
+
+
+def generate_summary(request, teacher_id):
+    # 1️⃣ Get lecture details from query params
+    title = request.GET.get("title")
+    class_name = request.GET.get("class_name")
+    division = request.GET.get("division")
+    date_str = request.GET.get("date")
+    start_time_str = request.GET.get("start_time")
+    end_time_str = request.GET.get("end_time")
+    # get the lecture dteaals from the query params
+    try:
+        date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        start_time = datetime.strptime(start_time_str, "%H:%M:%S").time()
+        end_time = datetime.strptime(end_time_str, "%H:%M:%S").time()
+    except Exception as e:
+        print("Date/Time conversion error:", e)
+        date = start_time = end_time = None
+
+    # 4️⃣ Get the correct lecture (matching all params)
+    lecture = get_object_or_404(
+        Lecture,
+        title=title,
+        class_name=class_name,
+        division=division,
+        date=date,
+        start_time=start_time,
+        end_time=end_time
+    )
+
+    # 5️⃣ Get all attendance entries (sorted by student)
+    attendance_entries = LectureAttendance.objects.filter(lecture=lecture).select_related('student').order_by('student__name')
+
+    # ✅ Group by student
+    from collections import defaultdict
+    student_data = defaultdict(list)
+
+    for entry in attendance_entries:
+        student_data[entry.student].append({
+            "state": entry.state,
+            "duration": entry.duration_seconds
+        })
+
+    # ✅ Build HTML (one row per student)
+    report_html = "<h2>Lecture Summary Report</h2>"
+    report_html += f"<h3>Lecture: {lecture.title}</h3>"
+    report_html += f"<h4>Date: {lecture.date}, Time: {lecture.start_time} - {lecture.end_time}</h4>"
+    report_html += "<table border='1' cellpadding='5' cellspacing='0'>"
+    report_html += "<tr><th>Student Name</th><th>Roll No</th><th>Email</th><th>Details (State - Duration)</th></tr>"
+
+    for student, records in student_data.items():
+        # Combine multiple states into a string
+        details = ", ".join([f"{r['state']} ({r['duration']:.2f}s)" for r in records])
+        report_html += f"<tr><td>{student.name}</td><td>{student.roll_no}</td><td>{student.email}</td><td>{details}</td></tr>"
+
+    report_html += "</table>"
+
+    # Render
+    context = {
+        "lecture": lecture,
+        "attendance_entries": attendance_entries,
+        "report_html": report_html,
+    }
+    return render(request, "teachers/generate_summary.html", context)

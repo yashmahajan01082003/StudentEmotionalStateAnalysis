@@ -457,7 +457,7 @@
                             <a href="{% url 'check_lecture' teacher.id %}?title={{ lecture.title }}&class_name={{ lecture.class_name }}&division={{ lecture.division }}&date={{ lecture.date|date:'Y-m-d' }}&start_time={{ lecture.start_time|time:'H:i:s' }}&end_time={{ lecture.end_time|time:'H:i:s' }}">
                                 <button type="button">Check Lecture</button>
                             </a>
-                            <a href="{% url 'check_lecture' teacher.id %}?title={{ lecture.title }}&class_name={{ lecture.class_name }}&division={{ lecture.division }}&date={{ lecture.date|date:'Y-m-d' }}&start_time={{ lecture.start_time|time:'H:i:s' }}&end_time={{ lecture.end_time|time:'H:i:s' }}">
+                            <a href="{% url 'generate_summary' teacher.id %}?title={{ lecture.title }}&class_name={{ lecture.class_name }}&division={{ lecture.division }}&date={{ lecture.date|date:'Y-m-d' }}&start_time={{ lecture.start_time|time:'H:i:s' }}&end_time={{ lecture.end_time|time:'H:i:s' }}">
                                 <button type="button" class="btn-report">Generate Report</button>
                             </a>
                         </div>

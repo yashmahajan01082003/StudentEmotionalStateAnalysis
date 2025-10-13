@@ -159,6 +159,18 @@
             animation: energize 2s ease-in-out infinite alternate;
             animation-delay: 1s;
         }
+        h5 {
+            font-size: 1em;
+            font-weight: 500;
+            margin-bottom: 10px;
+            margin-top: 10px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: #00ffff;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            position: relative;
+        }
+        
         
         @keyframes energize {
             from { 
@@ -446,6 +458,8 @@
             {{ form.as_p }}
             <button type="submit">Register</button>
         </form>
+        <a  href="{% url 'login_student' %}"><h5 class="button label">Login as Student</h5></a>
+
     </div>
 </body>
 </html>

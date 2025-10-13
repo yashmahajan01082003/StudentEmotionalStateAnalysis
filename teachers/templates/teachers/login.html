@@ -117,6 +117,18 @@
             position: relative;
         }
         
+        h5 {
+            font-size: 1em;
+            font-weight: 500;
+            margin-bottom: 10px;
+            margin-top: 10px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: #00ffff;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            position: relative;
+        }
+        
         h2::before {
             content: '👁️';
             position: absolute;
@@ -337,6 +349,10 @@
             {{ form.as_p }}
             <button type="submit">Login</button>
         </form>
+
+        <a  href="{% url 'login_student' %}"><h5 class="button label">Login as Student</h5></a>
+        <a  href="{% url 'register_teacher' %}"><h5 class="button label">Register as Teacher</h5></a>
+
         {% if form.errors %}
             <div class="error-message">{{ form.non_field_errors }}</div>
         {% endif %}

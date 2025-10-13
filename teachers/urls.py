@@ -12,4 +12,5 @@ urlpatterns = [
     path("teacher/<int:teacher_id>/schedule/", views.schedule_lecture, name="schedule_lecture"),
     path("teacher/<int:teacher_id>/lectures/", views.teacher_lectures, name="teacher_lectures"),
     path('show_student/<int:student_id>/', views.show_student, name='show_student'),
+    path('generate_summary/<int:teacher_id>/', views.generate_summary, name='generate_summary'),
 ]
